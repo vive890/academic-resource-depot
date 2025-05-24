@@ -9,16 +9,106 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          role?: Database["public"]["Enums"]["user_role"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      resources: {
+        Row: {
+          category: Database["public"]["Enums"]["resource_category"]
+          course: string | null
+          created_at: string | null
+          description: string | null
+          download_count: number | null
+          file_name: string
+          file_size: number | null
+          file_type: Database["public"]["Enums"]["file_type"]
+          file_url: string
+          id: string
+          subject: string | null
+          title: string
+          updated_at: string | null
+          uploader_id: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["resource_category"]
+          course?: string | null
+          created_at?: string | null
+          description?: string | null
+          download_count?: number | null
+          file_name: string
+          file_size?: number | null
+          file_type: Database["public"]["Enums"]["file_type"]
+          file_url: string
+          id?: string
+          subject?: string | null
+          title: string
+          updated_at?: string | null
+          uploader_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["resource_category"]
+          course?: string | null
+          created_at?: string | null
+          description?: string | null
+          download_count?: number | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: Database["public"]["Enums"]["file_type"]
+          file_url?: string
+          id?: string
+          subject?: string | null
+          title?: string
+          updated_at?: string | null
+          uploader_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resources_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_download_count: {
+        Args: { resource_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      file_type: "PDF" | "DOC" | "DOCX" | "PPT" | "PPTX" | "ZIP"
+      resource_category: "Books" | "Notes" | "PPTs" | "Projects"
+      user_role: "user" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +223,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      file_type: ["PDF", "DOC", "DOCX", "PPT", "PPTX", "ZIP"],
+      resource_category: ["Books", "Notes", "PPTs", "Projects"],
+      user_role: ["user", "admin"],
+    },
   },
 } as const
