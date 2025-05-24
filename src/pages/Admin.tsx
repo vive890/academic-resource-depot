@@ -1,14 +1,14 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Users, FileText, Download, User, Shield } from 'lucide-react';
+import { Trash2, Users, FileText, Download, User, Shield, TrendingUp, Calendar, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminUser {
@@ -18,6 +18,7 @@ interface AdminUser {
   role: string;
   created_at: string;
   resource_count: number;
+  total_downloads: number;
 }
 
 interface AdminResource {
@@ -35,6 +36,15 @@ interface AdminResource {
     full_name: string;
     email: string;
   };
+}
+
+interface UserStats {
+  total_users: number;
+  total_resources: number;
+  total_downloads: number;
+  new_users_this_month: number;
+  new_resources_this_month: number;
+  most_downloaded_category: string;
 }
 
 const Admin = () => {
@@ -61,23 +71,82 @@ const Admin = () => {
     enabled: !!user,
   });
 
-  // Fetch all users
+  // Fetch comprehensive stats
+  const { data: stats } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: async () => {
+      const [usersResponse, resourcesResponse] = await Promise.all([
+        supabase.from('profiles').select('*'),
+        supabase.from('resources').select('*')
+      ]);
+
+      if (usersResponse.error) throw usersResponse.error;
+      if (resourcesResponse.error) throw resourcesResponse.error;
+
+      const users = usersResponse.data;
+      const resources = resourcesResponse.data;
+
+      const currentMonth = new Date();
+      currentMonth.setDate(1);
+
+      const newUsersThisMonth = users.filter(user => 
+        new Date(user.created_at) >= currentMonth
+      ).length;
+
+      const newResourcesThisMonth = resources.filter(resource => 
+        new Date(resource.created_at) >= currentMonth
+      ).length;
+
+      const categoryDownloads = resources.reduce((acc, resource) => {
+        acc[resource.category] = (acc[resource.category] || 0) + resource.download_count;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const mostDownloadedCategory = Object.entries(categoryDownloads)
+        .sort(([,a], [,b]) => b - a)[0]?.[0] || 'N/A';
+
+      return {
+        total_users: users.length,
+        total_resources: resources.length,
+        total_downloads: resources.reduce((sum, r) => sum + r.download_count, 0),
+        new_users_this_month: newUsersThisMonth,
+        new_resources_this_month: newResourcesThisMonth,
+        most_downloaded_category: mostDownloadedCategory
+      } as UserStats;
+    },
+    enabled: userProfile?.role === 'admin',
+  });
+
+  // Fetch users with statistics
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          resource_count:resources(count)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data.map(user => ({
-        ...user,
-        resource_count: user.resource_count?.[0]?.count || 0
-      })) as AdminUser[];
+      if (profilesError) throw profilesError;
+
+      // Get resource counts and download totals for each user
+      const usersWithStats = await Promise.all(
+        profiles.map(async (profile) => {
+          const { data: resources, error: resourcesError } = await supabase
+            .from('resources')
+            .select('download_count')
+            .eq('uploader_id', profile.id);
+
+          if (resourcesError) throw resourcesError;
+
+          return {
+            ...profile,
+            resource_count: resources.length,
+            total_downloads: resources.reduce((sum, r) => sum + r.download_count, 0)
+          };
+        })
+      );
+
+      return usersWithStats as AdminUser[];
     },
     enabled: userProfile?.role === 'admin',
   });
@@ -178,13 +247,18 @@ const Admin = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-red-50 to-pink-50 flex items-center justify-center">
+        <Card className="w-full max-w-md animate-fade-in shadow-xl bg-white/80 backdrop-blur-sm">
           <CardContent className="p-6 text-center">
             <Shield className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Authentication Required</h3>
             <p className="text-gray-500 mb-4">Please sign in to access the admin panel.</p>
-            <Button onClick={() => navigate('/auth')}>Sign In</Button>
+            <Button 
+              onClick={() => navigate('/auth')}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              Sign In
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -193,132 +267,160 @@ const Admin = () => {
 
   if (userProfile?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-red-50 to-pink-50 flex items-center justify-center">
+        <Card className="w-full max-w-md animate-fade-in shadow-xl bg-white/80 backdrop-blur-sm">
           <CardContent className="p-6 text-center">
             <Shield className="mx-auto h-12 w-12 text-red-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Access Denied</h3>
             <p className="text-gray-500 mb-4">You don't have permission to access the admin panel.</p>
-            <Button onClick={() => navigate('/')}>Go Home</Button>
+            <Button 
+              onClick={() => navigate('/')}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              Go Home
+            </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const totalUsers = users?.length || 0;
-  const totalResources = resources?.length || 0;
-  const totalDownloads = resources?.reduce((sum, resource) => sum + resource.download_count, 0) || 0;
-
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Admin Dashboard
+          </h1>
           <p className="text-gray-600">Manage users and resources</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
+        {/* Enhanced Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <Card className="animate-fade-in bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl hover:scale-105 transition-transform duration-300">
             <CardContent className="p-6">
-              <div className="flex items-center">
-                <Users className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total Users</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalUsers}</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100">Total Users</p>
+                  <p className="text-3xl font-bold">{stats?.total_users || 0}</p>
+                  <p className="text-sm text-blue-100">+{stats?.new_users_this_month || 0} this month</p>
                 </div>
+                <Users className="h-12 w-12 text-blue-200" />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="animate-fade-in bg-gradient-to-br from-green-500 to-green-600 text-white shadow-xl hover:scale-105 transition-transform duration-300" style={{ animationDelay: '0.1s' }}>
             <CardContent className="p-6">
-              <div className="flex items-center">
-                <FileText className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total Resources</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalResources}</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100">Total Resources</p>
+                  <p className="text-3xl font-bold">{stats?.total_resources || 0}</p>
+                  <p className="text-sm text-green-100">+{stats?.new_resources_this_month || 0} this month</p>
                 </div>
+                <FileText className="h-12 w-12 text-green-200" />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="animate-fade-in bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-xl hover:scale-105 transition-transform duration-300" style={{ animationDelay: '0.2s' }}>
             <CardContent className="p-6">
-              <div className="flex items-center">
-                <Download className="h-8 w-8 text-purple-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total Downloads</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalDownloads}</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100">Total Downloads</p>
+                  <p className="text-3xl font-bold">{stats?.total_downloads || 0}</p>
+                  <p className="text-sm text-purple-100">Most popular: {stats?.most_downloaded_category}</p>
                 </div>
+                <Download className="h-12 w-12 text-purple-200" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Tabs for Users and Resources */}
-        <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="users">Manage Users</TabsTrigger>
-            <TabsTrigger value="resources">Manage Resources</TabsTrigger>
+        {/* Enhanced Tabs */}
+        <Tabs defaultValue="users" className="w-full animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-sm">
+            <TabsTrigger value="users" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">
+              Manage Users
+            </TabsTrigger>
+            <TabsTrigger value="resources" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">
+              Manage Resources
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="users">
-            <Card>
+            <Card className="bg-white/80 backdrop-blur-sm shadow-xl">
               <CardHeader>
-                <CardTitle>All Users</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  All Users
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {usersLoading ? (
-                  <div className="text-center py-8">Loading users...</div>
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading users...</p>
+                  </div>
                 ) : users && users.length > 0 ? (
-                  <div className="space-y-4">
-                    {users.map((user) => (
-                      <div key={user.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <User className="h-4 w-4 text-gray-500" />
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                {user.full_name || user.email}
-                              </h3>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>User</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Resources</TableHead>
+                          <TableHead>Downloads</TableHead>
+                          <TableHead>Joined</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {users.map((user, index) => (
+                          <TableRow key={user.id} className="animate-fade-in hover:bg-gray-50/80" style={{ animationDelay: `${index * 0.05}s` }}>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-gray-500" />
+                                {user.full_name || 'Unnamed User'}
+                              </div>
+                            </TableCell>
+                            <TableCell>{user.email}</TableCell>
+                            <TableCell>
                               <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
                                 {user.role}
                               </Badge>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-500">
-                              <div>
-                                <span className="font-medium">Email:</span><br />
-                                {user.email}
-                              </div>
-                              <div>
-                                <span className="font-medium">Joined:</span><br />
-                                {formatDate(user.created_at)}
-                              </div>
-                              <div>
-                                <span className="font-medium">Resources:</span><br />
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <FileText className="h-4 w-4 text-blue-500" />
                                 {user.resource_count}
                               </div>
-                            </div>
-                          </div>
-
-                          <div className="ml-4">
-                            {user.role !== 'admin' && (
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => deleteUserMutation.mutate(user.id)}
-                                disabled={deleteUserMutation.isPending}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <Download className="h-4 w-4 text-green-500" />
+                                {user.total_downloads}
+                              </div>
+                            </TableCell>
+                            <TableCell>{formatDate(user.created_at)}</TableCell>
+                            <TableCell>
+                              {user.role !== 'admin' && (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  className="hover:scale-105 transition-transform duration-200"
+                                  onClick={() => deleteUserMutation.mutate(user.id)}
+                                  disabled={deleteUserMutation.isPending}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 ) : (
                   <div className="text-center py-12">

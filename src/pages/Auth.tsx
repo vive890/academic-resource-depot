@@ -68,18 +68,20 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 animate-fade-in">
         <div className="text-center">
-          <BookOpen className="mx-auto h-12 w-12 text-blue-600" />
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+          <BookOpen className="mx-auto h-12 w-12 text-blue-600 animate-pulse" />
+          <h2 className="mt-6 text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             {isSignUp ? 'Create your account' : 'Sign in to EduMart'}
           </h2>
         </div>
 
-        <Card>
+        <Card className="shadow-2xl bg-white/80 backdrop-blur-sm border-0 hover:shadow-3xl transition-shadow duration-300">
           <CardHeader>
-            <CardTitle>{isSignUp ? 'Sign Up' : 'Sign In'}</CardTitle>
+            <CardTitle className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {isSignUp ? 'Sign Up' : 'Sign In'}
+            </CardTitle>
             <CardDescription>
               {isSignUp
                 ? 'Create an account to upload and download educational resources'
@@ -89,7 +91,7 @@ const Auth = () => {
           <CardContent>
             <form onSubmit={handleAuth} className="space-y-4">
               {isSignUp && (
-                <div>
+                <div className="animate-fade-in">
                   <Label htmlFor="fullName">Full Name</Label>
                   <Input
                     id="fullName"
@@ -98,6 +100,7 @@ const Auth = () => {
                     onChange={(e) => setFullName(e.target.value)}
                     required
                     placeholder="Enter your full name"
+                    className="transition-all duration-200 focus:scale-105"
                   />
                 </div>
               )}
@@ -111,6 +114,7 @@ const Auth = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="Enter your email"
+                  className="transition-all duration-200 focus:scale-105"
                 />
               </div>
 
@@ -124,15 +128,23 @@ const Auth = () => {
                   required
                   placeholder="Enter your password"
                   minLength={6}
+                  className="transition-all duration-200 focus:scale-105"
                 />
               </div>
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-105"
                 disabled={isLoading}
               >
-                {isLoading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Loading...
+                  </div>
+                ) : (
+                  isSignUp ? 'Sign Up' : 'Sign In'
+                )}
               </Button>
             </form>
 
@@ -140,7 +152,7 @@ const Auth = () => {
               <button
                 type="button"
                 onClick={() => setIsSignUp(!isSignUp)}
-                className="text-blue-600 hover:text-blue-500"
+                className="text-blue-600 hover:text-blue-500 transition-colors duration-200 hover:underline"
               >
                 {isSignUp
                   ? 'Already have an account? Sign In'
