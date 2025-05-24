@@ -11,11 +11,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Upload as UploadIcon, FileText } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
+
+type ResourceCategory = Database['public']['Enums']['resource_category'];
+type FileType = Database['public']['Enums']['file_type'];
 
 const Upload = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState<ResourceCategory | ''>('');
   const [subject, setSubject] = useState('');
   const [course, setCourse] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -34,7 +38,7 @@ const Upload = () => {
     'application/zip'
   ];
 
-  const getFileType = (mimeType: string): string => {
+  const getFileType = (mimeType: string): FileType => {
     switch (mimeType) {
       case 'application/pdf': return 'PDF';
       case 'application/msword': return 'DOC';
@@ -111,7 +115,7 @@ const Upload = () => {
         .insert({
           title,
           description,
-          category,
+          category: category as ResourceCategory,
           file_type: getFileType(file.type),
           file_url: uploadData.path,
           file_name: file.name,
@@ -203,7 +207,7 @@ const Upload = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="category">Category *</Label>
-                  <Select value={category} onValueChange={setCategory} required>
+                  <Select value={category || undefined} onValueChange={(value) => setCategory(value as ResourceCategory)} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>

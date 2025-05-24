@@ -8,13 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { Download, FileText, Search, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+
+type ResourceCategory = Database['public']['Enums']['resource_category'];
+type FileType = Database['public']['Enums']['file_type'];
 
 interface Resource {
   id: string;
   title: string;
   description: string;
-  category: string;
-  file_type: string;
+  category: ResourceCategory;
+  file_type: FileType;
   file_url: string;
   file_name: string;
   file_size: number;
@@ -30,8 +34,8 @@ interface Resource {
 
 const Resources = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('');
-  const [fileTypeFilter, setFileTypeFilter] = useState<string>('');
+  const [categoryFilter, setCategoryFilter] = useState<ResourceCategory | ''>('');
+  const [fileTypeFilter, setFileTypeFilter] = useState<FileType | ''>('');
   const [subjectFilter, setSubjectFilter] = useState('');
   const { toast } = useToast();
 
@@ -53,10 +57,10 @@ const Resources = () => {
         query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
       }
       if (categoryFilter) {
-        query = query.eq('category', categoryFilter);
+        query = query.eq('category', categoryFilter as ResourceCategory);
       }
       if (fileTypeFilter) {
-        query = query.eq('file_type', fileTypeFilter);
+        query = query.eq('file_type', fileTypeFilter as FileType);
       }
       if (subjectFilter) {
         query = query.ilike('subject', `%${subjectFilter}%`);
@@ -130,7 +134,7 @@ const Resources = () => {
               />
             </div>
             
-            <Select value={categoryFilter || undefined} onValueChange={(value) => setCategoryFilter(value || '')}>
+            <Select value={categoryFilter || undefined} onValueChange={(value) => setCategoryFilter((value as ResourceCategory) || '')}>
               <SelectTrigger>
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
@@ -142,7 +146,7 @@ const Resources = () => {
               </SelectContent>
             </Select>
 
-            <Select value={fileTypeFilter || undefined} onValueChange={(value) => setFileTypeFilter(value || '')}>
+            <Select value={fileTypeFilter || undefined} onValueChange={(value) => setFileTypeFilter((value as FileType) || '')}>
               <SelectTrigger>
                 <SelectValue placeholder="All File Types" />
               </SelectTrigger>
