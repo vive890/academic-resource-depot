@@ -109,7 +109,7 @@ const Upload = () => {
       const { error: insertError } = await supabase
         .from('resources')
         .insert({
-          title,
+          name: title,
           description,
           category,
           file_type: getFileType(file.type),

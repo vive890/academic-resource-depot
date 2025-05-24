@@ -30,8 +30,8 @@ interface Resource {
 
 const Resources = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [fileTypeFilter, setFileTypeFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [fileTypeFilter, setFileTypeFilter] = useState<string>('');
   const [subjectFilter, setSubjectFilter] = useState('');
   const { toast } = useToast();
 
@@ -132,10 +132,9 @@ const Resources = () => {
             
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
                 <SelectItem value="Books">Books</SelectItem>
                 <SelectItem value="Notes">Notes</SelectItem>
                 <SelectItem value="PPTs">PPTs</SelectItem>
@@ -145,10 +144,9 @@ const Resources = () => {
 
             <Select value={fileTypeFilter} onValueChange={setFileTypeFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="File Type" />
+                <SelectValue placeholder="All File Types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
                 <SelectItem value="PDF">PDF</SelectItem>
                 <SelectItem value="DOC">DOC</SelectItem>
                 <SelectItem value="DOCX">DOCX</SelectItem>
