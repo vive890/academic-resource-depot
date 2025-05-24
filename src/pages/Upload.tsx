@@ -109,7 +109,7 @@ const Upload = () => {
       const { error: insertError } = await supabase
         .from('resources')
         .insert({
-          name: title,
+          title,
           description,
           category,
           file_type: getFileType(file.type),
@@ -258,7 +258,7 @@ const Upload = () => {
 
               <Button type="submit" disabled={isUploading} className="w-full">
                 {isUploading ? (
-                  <>Uploading...</>
+                  <>Uploading...</> 
                 ) : (
                   <>
                     <UploadIcon className="w-4 h-4 mr-2" />

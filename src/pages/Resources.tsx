@@ -130,7 +130,7 @@ const Resources = () => {
               />
             </div>
             
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <Select value={categoryFilter || undefined} onValueChange={(value) => setCategoryFilter(value || '')}>
               <SelectTrigger>
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
@@ -142,7 +142,7 @@ const Resources = () => {
               </SelectContent>
             </Select>
 
-            <Select value={fileTypeFilter} onValueChange={setFileTypeFilter}>
+            <Select value={fileTypeFilter || undefined} onValueChange={(value) => setFileTypeFilter(value || '')}>
               <SelectTrigger>
                 <SelectValue placeholder="All File Types" />
               </SelectTrigger>
