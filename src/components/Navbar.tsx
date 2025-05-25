@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { BookOpen, Menu, X, User, Upload, Home, LogOut, Shield } from 'lucide-react';
+import { BookOpen, Menu, X, User, Upload, Home, LogOut, Shield, Info } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,6 +53,15 @@ const Navbar = () => {
               }`}
             >
               Browse Resources
+            </Link>
+            <Link 
+              to="/about" 
+              className={`px-3 py-2 rounded-md transition-all duration-200 hover:bg-blue-50 ${
+                isActive('/about') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:text-blue-600'
+              }`}
+            >
+              <Info className="inline w-4 h-4 mr-1" />
+              About
             </Link>
             
             {user ? (
@@ -150,6 +159,15 @@ const Navbar = () => {
             >
               Browse Resources
             </Link>
+            <Link 
+              to="/about" 
+              className={`block px-3 py-2 rounded-md transition-all duration-200 ${
+                isActive('/about') ? 'text-blue-600 bg-blue-100' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              About
+            </Link>
             
             {user ? (
               <>
@@ -185,7 +203,7 @@ const Navbar = () => {
                     handleSignOut();
                     setIsOpen(false);
                   }}
-                  className="block w-full text-left px-3 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-md transition-all duration-200"
+                  className="block w-full text-left px-3 py-2 rounded-md text-gray-700 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
                 >
                   Sign Out
                 </button>
@@ -194,14 +212,14 @@ const Navbar = () => {
               <>
                 <Link 
                   to="/auth" 
-                  className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-200"
+                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
                   onClick={() => setIsOpen(false)}
                 >
                   Sign In
                 </Link>
                 <Link 
                   to="/auth?mode=signup" 
-                  className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-200"
+                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
                   onClick={() => setIsOpen(false)}
                 >
                   Sign Up

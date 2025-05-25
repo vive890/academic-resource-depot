@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
-import { Download, FileText, Search, Filter } from 'lucide-react';
+import { Download, FileText, Search, Filter, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,6 +23,7 @@ interface Resource {
   file_url: string;
   file_name: string;
   file_size: number;
+  preview_image_url: string | null;
   subject: string;
   course: string;
   download_count: number;
@@ -72,6 +74,14 @@ const Resources = () => {
       return data as Resource[];
     },
   });
+
+  const getPreviewImageUrl = (previewPath: string | null) => {
+    if (!previewPath) return null;
+    const { data } = supabase.storage
+      .from('educational-resources')
+      .getPublicUrl(previewPath);
+    return data.publicUrl;
+  };
 
   const handleDownload = async (resource: Resource) => {
     if (!user) {
@@ -130,7 +140,9 @@ const Resources = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8 animate-fade-in">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Browse Resources</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            Browse Resources
+          </h1>
           
           {/* Search and Filters */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
@@ -140,12 +152,12 @@ const Resources = () => {
                 placeholder="Search resources..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 transition-all duration-200 focus:scale-105"
               />
             </div>
             
             <Select value={categoryFilter || undefined} onValueChange={(value) => setCategoryFilter((value as ResourceCategory) || '')}>
-              <SelectTrigger>
+              <SelectTrigger className="transition-all duration-200 focus:scale-105">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
@@ -157,7 +169,7 @@ const Resources = () => {
             </Select>
 
             <Select value={fileTypeFilter || undefined} onValueChange={(value) => setFileTypeFilter((value as FileType) || '')}>
-              <SelectTrigger>
+              <SelectTrigger className="transition-all duration-200 focus:scale-105">
                 <SelectValue placeholder="All File Types" />
               </SelectTrigger>
               <SelectContent>
@@ -174,6 +186,7 @@ const Resources = () => {
               placeholder="Subject"
               value={subjectFilter}
               onChange={(e) => setSubjectFilter(e.target.value)}
+              className="transition-all duration-200 focus:scale-105"
             />
 
             <Button 
@@ -184,6 +197,7 @@ const Resources = () => {
                 setFileTypeFilter('');
                 setSubjectFilter('');
               }}
+              className="transition-all duration-200 hover:scale-105"
             >
               <Filter className="w-4 h-4 mr-2" />
               Clear Filters
@@ -192,7 +206,7 @@ const Resources = () => {
         </div>
 
         {isLoading ? (
-          <div className="text-center py-8">
+          <div className="text-center py-8 animate-fade-in">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading resources...</p>
           </div>
@@ -201,9 +215,27 @@ const Resources = () => {
             {resources?.map((resource, index) => (
               <Card 
                 key={resource.id} 
-                className="hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white/80 backdrop-blur-sm border-0 shadow-lg animate-fade-in"
+                className="hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white/80 backdrop-blur-sm border-0 shadow-lg animate-fade-in overflow-hidden"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
+                {/* Preview Image */}
+                {resource.preview_image_url && (
+                  <div className="relative h-48 overflow-hidden">
+                    <img 
+                      src={getPreviewImageUrl(resource.preview_image_url) || ''} 
+                      alt={`Preview of ${resource.title}`}
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                    <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                      <Image className="w-3 h-3" />
+                      Preview
+                    </div>
+                  </div>
+                )}
+                
                 <CardHeader>
                   <CardTitle className="text-lg bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     {resource.title}
@@ -218,7 +250,7 @@ const Resources = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 mb-4 text-sm">{resource.description}</p>
+                  <p className="text-gray-600 mb-4 text-sm line-clamp-3">{resource.description}</p>
                   
                   <div className="space-y-2 text-sm text-gray-500 mb-4">
                     {resource.subject && (
