@@ -71,7 +71,12 @@ const Resources = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as Resource[];
+      
+      // Ensure all returned data has the preview_image_url field
+      return (data || []).map(item => ({
+        ...item,
+        preview_image_url: item.preview_image_url || null
+      })) as Resource[];
     },
   });
 
