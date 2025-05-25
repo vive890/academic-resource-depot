@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -58,6 +57,19 @@ const Navbar = () => {
             >
               Browse Resources
             </Link>
+            
+            {!user && (
+              <Link 
+                to="/about" 
+                className={`px-4 py-2 rounded-lg transition-all duration-300 font-medium ${
+                  isActive('/about') 
+                    ? 'text-blue-600 bg-blue-50 shadow-sm' 
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50/50'
+                }`}
+              >
+                About
+              </Link>
+            )}
             
             {user ? (
               <>
@@ -153,6 +165,20 @@ const Navbar = () => {
             >
               Browse Resources
             </Link>
+            
+            {!user && (
+              <Link 
+                to="/about" 
+                className={`block px-4 py-3 rounded-lg transition-all duration-300 font-medium ${
+                  isActive('/about') 
+                    ? 'text-blue-600 bg-blue-100/70' 
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50/50'
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                About
+              </Link>
+            )}
             
             {user ? (
               <>
