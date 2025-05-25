@@ -48,6 +48,7 @@ export type Database = {
           file_type: Database["public"]["Enums"]["file_type"]
           file_url: string
           id: string
+          preview_image_url: string | null
           subject: string | null
           title: string
           updated_at: string | null
@@ -64,6 +65,7 @@ export type Database = {
           file_type: Database["public"]["Enums"]["file_type"]
           file_url: string
           id?: string
+          preview_image_url?: string | null
           subject?: string | null
           title: string
           updated_at?: string | null
@@ -80,6 +82,7 @@ export type Database = {
           file_type?: Database["public"]["Enums"]["file_type"]
           file_url?: string
           id?: string
+          preview_image_url?: string | null
           subject?: string | null
           title?: string
           updated_at?: string | null

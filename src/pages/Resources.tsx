@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -72,11 +71,7 @@ const Resources = () => {
       const { data, error } = await query;
       if (error) throw error;
       
-      // Ensure all returned data has the preview_image_url field
-      return (data || []).map(item => ({
-        ...item,
-        preview_image_url: item.preview_image_url || null
-      })) as Resource[];
+      return data as Resource[];
     },
   });
 
