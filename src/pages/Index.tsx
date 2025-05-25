@@ -1,10 +1,38 @@
 
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import CategoryCard from '@/components/CategoryCard';
 import { BookOpen, FileText, Presentation, Folder, Search, Upload, Download } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/resources');
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render landing page for authenticated users
+  if (user) {
+    return null;
+  }
+
   const categories = [
     {
       title: 'Books',
@@ -47,48 +75,53 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Your Academic Resource Hub
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Share and discover educational materials. Upload books, notes, presentations, 
-            and projects. Download resources completely free.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/resources">
-              <Button size="lg" variant="secondary" className="text-blue-600">
-                Browse Resources
-              </Button>
-            </Link>
-            <Link to="/auth?mode=signup">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
-                Join EduMart
-              </Button>
-            </Link>
+      <section className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="animate-fade-in">
+            <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+              Your Academic Resource Hub
+            </h1>
+            <p className="text-xl md:text-2xl mb-10 max-w-4xl mx-auto leading-relaxed opacity-90">
+              Share and discover educational materials. Upload books, notes, presentations, 
+              and projects. Download resources completely free and accelerate your learning journey.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <Link to="/resources">
+                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                  Browse Resources
+                </Button>
+              </Link>
+              <Link to="/auth?mode=signup">
+                <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg font-semibold transition-all duration-300 hover:scale-105">
+                  Join EduMart
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Categories Section */}
-      <section className="py-16">
+      <section className="py-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-16 animate-fade-in">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
               Explore Resource Categories
             </h2>
-            <p className="text-xl text-gray-600">
-              Find the educational materials you need across different categories
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Find the educational materials you need across different categories and subjects
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {categories.map((category) => (
-              <Link key={category.title} to="/resources">
-                <CategoryCard {...category} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {categories.map((category, index) => (
+              <Link key={category.title} to="/resources" className="group">
+                <div className="animate-fade-in hover:scale-105 transition-all duration-300" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <CategoryCard {...category} />
+                </div>
               </Link>
             ))}
           </div>
@@ -96,27 +129,27 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-white/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-16 animate-fade-in">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
               Why Choose EduMart?
             </h2>
-            <p className="text-xl text-gray-600">
-              The simplest way to share and access educational resources
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              The simplest way to share and access educational resources worldwide
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feature) => (
-              <div key={feature.title} className="text-center">
-                <div className="flex justify-center mb-4">
-                  <div className="p-3 bg-blue-100 rounded-full">
-                    <feature.icon className="h-8 w-8 text-blue-600" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {features.map((feature, index) => (
+              <div key={feature.title} className="text-center group animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div className="flex justify-center mb-6">
+                  <div className="p-4 bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                    <feature.icon className="h-10 w-10 text-blue-600" />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <h3 className="text-2xl font-semibold mb-4 text-gray-800">{feature.title}</h3>
+                <p className="text-gray-600 text-lg leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -124,22 +157,21 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-blue-50">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Ready to Get Started?
-          </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Join thousands of students and educators sharing knowledge
+      <section className="py-20 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 text-white animate-fade-in">
+          <h2 className="text-4xl font-bold mb-6">Ready to Get Started?</h2>
+          <p className="text-xl mb-10 opacity-90 leading-relaxed">
+            Join thousands of students and educators sharing knowledge across the globe
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link to="/auth?mode=signup">
-              <Button size="lg">
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
                 Create Account
               </Button>
             </Link>
             <Link to="/resources">
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg font-semibold transition-all duration-300 hover:scale-105">
                 Browse Resources
               </Button>
             </Link>

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { BookOpen, Menu, X, User, Upload, Home, LogOut, Shield, Info } from 'lucide-react';
+import { BookOpen, Menu, X, User, Upload, LogOut, Shield, Info } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,6 +20,14 @@ const Navbar = () => {
     }
   };
 
+  const handleLogoClick = () => {
+    if (user) {
+      navigate('/resources');
+    } else {
+      navigate('/');
+    }
+  };
+
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -27,25 +35,16 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2 group">
+            <button onClick={handleLogoClick} className="flex items-center space-x-2 group">
               <BookOpen className="h-8 w-8 text-blue-600 transition-transform group-hover:scale-110 duration-300" />
               <span className="text-xl font-bold text-gray-900 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 EduMart
               </span>
-            </Link>
+            </button>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link 
-              to="/" 
-              className={`px-3 py-2 rounded-md transition-all duration-200 hover:bg-blue-50 ${
-                isActive('/') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:text-blue-600'
-              }`}
-            >
-              <Home className="inline w-4 h-4 mr-1" />
-              Home
-            </Link>
             <Link 
               to="/resources" 
               className={`px-3 py-2 rounded-md transition-all duration-200 hover:bg-blue-50 ${
@@ -54,15 +53,17 @@ const Navbar = () => {
             >
               Browse Resources
             </Link>
-            <Link 
-              to="/about" 
-              className={`px-3 py-2 rounded-md transition-all duration-200 hover:bg-blue-50 ${
-                isActive('/about') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:text-blue-600'
-              }`}
-            >
-              <Info className="inline w-4 h-4 mr-1" />
-              About
-            </Link>
+            {!user && (
+              <Link 
+                to="/about" 
+                className={`px-3 py-2 rounded-md transition-all duration-200 hover:bg-blue-50 ${
+                  isActive('/about') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:text-blue-600'
+                }`}
+              >
+                <Info className="inline w-4 h-4 mr-1" />
+                About
+              </Link>
+            )}
             
             {user ? (
               <>
@@ -142,15 +143,6 @@ const Navbar = () => {
         }`}>
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 rounded-lg mb-2">
             <Link 
-              to="/" 
-              className={`block px-3 py-2 rounded-md transition-all duration-200 ${
-                isActive('/') ? 'text-blue-600 bg-blue-100' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-              }`}
-              onClick={() => setIsOpen(false)}
-            >
-              Home
-            </Link>
-            <Link 
               to="/resources" 
               className={`block px-3 py-2 rounded-md transition-all duration-200 ${
                 isActive('/resources') ? 'text-blue-600 bg-blue-100' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
@@ -159,15 +151,17 @@ const Navbar = () => {
             >
               Browse Resources
             </Link>
-            <Link 
-              to="/about" 
-              className={`block px-3 py-2 rounded-md transition-all duration-200 ${
-                isActive('/about') ? 'text-blue-600 bg-blue-100' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-              }`}
-              onClick={() => setIsOpen(false)}
-            >
-              About
-            </Link>
+            {!user && (
+              <Link 
+                to="/about" 
+                className={`block px-3 py-2 rounded-md transition-all duration-200 ${
+                  isActive('/about') ? 'text-blue-600 bg-blue-100' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                About
+              </Link>
+            )}
             
             {user ? (
               <>
